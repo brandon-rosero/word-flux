@@ -1,0 +1,32 @@
+.input-wrapper {
+    background-color: white;
+    width: 600px;
+    border-radius: 10px;
+    height: 10px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.wrap{
+    display: flex;
+    justify-content: center;
+    margin: 2rem;
+}
+
+input {
+    background-color: transparent;
+    border: none;
+    height: 100%;
+    width: 600px;
+    color: black;    
+}
+
+input:focus {
+    outline: none;
+}
+
+button {
+    font-size: 10px;
+    color: white;
+}

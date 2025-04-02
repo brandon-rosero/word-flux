@@ -1,0 +1,37 @@
+nav{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #141414;
+    height: 60px;
+    
+}
+
+.navbar{
+    color: white;
+    margin: 0.5rem;
+    text-decoration: none;
+
+}
+
+ul{
+    display: flex;
+}
+
+li{
+    list-style: none;
+    color: white;
+}
+
+li a{
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+
+}
+
+.active{
+    background-color: #242424;
+}
