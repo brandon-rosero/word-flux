@@ -8,7 +8,7 @@ import AppContext from './context'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AppContext>
-      <BrowserRouter>
+      <BrowserRouter basename="/word-flux">
         <App />
       </BrowserRouter>
     </AppContext>
