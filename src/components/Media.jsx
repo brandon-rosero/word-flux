@@ -4,22 +4,28 @@ const Media = () => {
   
   var player;
   const {textInput, setTextInput} = useGlobalContext()
-  const [data, setData] = useState("")
+  const [data, setData] = useState(null)
   const [language, setLanguage] = useState("")
 
   useEffect(() => {
 
-    createIFrame()
-    fetch("http://127.0.0.1:5000/api/transcribe", { 
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        
-      },
-      body: JSON.stringify({ data: textInput })
-    }).then(res => res.json()).then(data => setData(data.text))
-    //fetch(`/api/test`).then(res => res.json).then(data => console.log("data"))
+    const timerId = setTimeout(() => {
+      createIFrame()
+      fetch("http://127.0.0.1:5000/api/transcribe", { 
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          
+        },
+        body: JSON.stringify({ data: textInput })
+      }).then(res => res.json()).then(data => console.log(data))
+      //fetch(`/api/test`).then(res => res.json).then(data => console.log("data"))
+    }, 5000);
+
+    return () => {
+      clearTimeout(timerId);
+    };
 
   }, [])
  
@@ -28,7 +34,10 @@ const Media = () => {
         
         <div>
           <div id="player"></div>
-          <div>{data}</div>
+          {/* <div>{data.map((item, index) => (
+              <div key={index}>{item}</div>
+            ))}
+          </div> */}
         </div>
     </>
   )
@@ -41,30 +50,33 @@ const Media = () => {
 
   function createIFrame(){
       const parsedURL = parseURL(textInput)
-      console.log(parsedURL)
-
       // Creates an <iframe> (and YouTube player)
       player = new YT.Player('player', {
           height: '390',
           width: '640',
           videoId: parsedURL,
           events: {
-              'onPlayerReady': onPlayerReady,
+              'onReady': onPlayerReady,
               'onStateChange': onPlayerStateChange,
           }
-      });   
-      
-      
+      });      
   }
 
-  function onPlayerReady() { 
-      player.playVideo();
+  function onPlayerReady(event) { 
+    event.target.playVideo();
+    
+    console.log(event.target.getCurrentTime())
   }
 
   function onPlayerStateChange(event) {
-      if(event.data == 0){
-          player.destroy();
-      }
+    
+    if(event.data == 0){
+        player.destroy();
+    }
+    if(event.data == YT.PlayerState.PLAYING){
+      console.log(event.target.getCurrentTime())
+    }
+      
   }
 }
 
