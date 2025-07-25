@@ -6,6 +6,7 @@ antlr4-python3-runtime==4.9.3
 asteroid-filterbanks==0.4.0
 attrs==25.3.0
 av==14.4.0
+beautifulsoup4==4.13.4
 blinker==1.9.0
 Brotli==1.1.0
 certifi==2025.1.31
@@ -93,6 +94,7 @@ shellingham==1.5.4
 six==1.17.0
 sortedcontainers==2.4.0
 soundfile==0.13.1
+soupsieve==2.7
 speechbrain==1.0.3
 SQLAlchemy==2.0.41
 sympy==1.13.3
