@@ -1,13 +1,16 @@
 import React, { useStatem, useEffect, useState } from 'react'
 import { useGlobalContext } from '../context';
 import "../css/word.css"
+import "../css/ytText.css"
 const Media = () => {
   
   const [player, setPlayer] = useState();
-  const {textInput, setTextInput} = useGlobalContext()
+  const {textInput} = useGlobalContext()
   const [data, setData] = useState([])
   const [time, setTime] = useState(0.0)
   const [language, setLanguage] = useState("")
+  const [definitions, setDefinitions] = useState()
+  const [word, setCurrentWord] = useState()
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -43,10 +46,13 @@ const Media = () => {
  
   return (
     <>
-        <div>
-          <div id="player"></div>
+        <div className='yt-container'>
+          <div className='yt-iframe-def-container'>
+            <div className='yt-iframe' id="player"></div>
+            <div className='yt-definition-container'>{word}{definitions?.map((d, index) => <span key={index} className='def-span'>{d}</span>)}</div>
+          </div>
           <HighlightText transcript={data} currentTime={time}/>
-          <div>THIS IS THE LANGUAGE:{language}</div>
+          {/* <div>THIS IS THE LANGUAGE:{language}</div> */}
         </div>
     </>
   )
@@ -60,12 +66,12 @@ const Media = () => {
         
       },
       body: JSON.stringify({word: word, language: language})
-    }).then((res => res.json())).then(data => console.log(data))
+    }).then((res => res.json())).then(data => {setCurrentWord(data[0]); setDefinitions(data[1])})
   }
 
   function HighlightText({transcript, currentTime}){
     return (
-      <div>
+      <div className='text'>
         {transcript.map((word, index) => (
           <span key={index}
             className={
