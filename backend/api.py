@@ -2,6 +2,8 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
+from config import Config
+from models import db, Event
 
 import whisper
 import youtube_dl
@@ -14,6 +16,8 @@ import requests
 
 
 app = Flask(__name__)
+app.config.from_object(Config)
+db.init_app(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/api/test')
@@ -26,9 +30,15 @@ def get_definitions():
     word = info['word']
     language = info['language']
     result = []
-    
+
     url = f"https://en.wiktionary.org/api/rest_v1/page/definition/{word}"
-    res = requests.get(url)
+
+    #prevent 403 error
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
+    }
+
+    res = requests.get(url, headers=headers)
 
     if res.status_code != 200:
         print(f"Error fetching data: {res.status_code}")
@@ -46,9 +56,10 @@ def get_definitions():
         for i in range(len(definitions)):
             raw_definition = definitions[i].get('definition', '')
             clean_definition = BeautifulSoup(raw_definition, "html.parser").get_text()
-            result.append(f"({part_of_speech}) {clean_definition}")
+            if raw_definition != '' and i < 2:
+                result.append(f"({part_of_speech}) {clean_definition}")
 
-    return jsonify(result)
+    return jsonify([word, result])
 
 @app.route('/api/transcribe', methods=['POST', 'GET'])
 def transcribe(): 
@@ -114,4 +125,6 @@ def transcribe():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
