@@ -1,9 +1,9 @@
 import { createContext, useContext } from "react";
 import React, { useState } from 'react'
 
-const GlobalContext = createContext()
+export const GlobalContext = createContext(null)
 
-export const useGlobalContext = () => useContext(GlobalContext)
+//export const useGlobalContext = () => useContext(GlobalContext)
 
 const AppContext = ({children}) =>{
     const [textInput, setTextInput] = useState('')

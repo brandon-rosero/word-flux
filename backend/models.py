@@ -8,3 +8,16 @@ class Event(db.Model):
 
     def __repr__(self):
         return f"<Event: {self.description}>"
+    
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    def __init__(self, email, password):
+        self.email = email
+        self.password_hash = password
+
+    def __repr__(self):
+        return f"<User: {self.email}> {self.password_hash}>"

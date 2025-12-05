@@ -1,11 +1,11 @@
-import React, { useStatem, useEffect, useState } from 'react'
-import { useGlobalContext } from '../context';
+import React, { useStatem, useEffect, useState, useContext } from 'react'
+import { GlobalContext } from '../context';
 import "../css/word.css"
 import "../css/ytText.css"
 const Media = () => {
   
   const [player, setPlayer] = useState();
-  const {textInput} = useGlobalContext()
+  const {textInput} = useContext(GlobalContext)
   const [data, setData] = useState([])
   const [time, setTime] = useState(0.0)
   const [language, setLanguage] = useState("")

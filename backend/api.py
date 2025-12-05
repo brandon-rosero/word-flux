@@ -1,10 +1,13 @@
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from config import Config
-from models import db, Event
+from models import db, User
+from dotenv import load_dotenv
+from flask_jwt_extended import create_access_token, set_access_cookies, jwt_required, get_jwt_identity, JWTManager
 
+import bcrypt
 import whisper
 import youtube_dl
 import yt_dlp
@@ -14,15 +17,85 @@ import gc
 import torch
 import requests
 
-
+load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
+
+jwt = JWTManager(app)
+
 db.init_app(app)
-CORS(app, resources={r"/*": {"origins": "*"}})
+
+CORS(app, 
+     supports_credentials=True,
+     resources={r"/*": {"origins": "http://localhost:5173"}},
+     methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+     allow_headers=["Content-Type",'Accept'])
 
 @app.route('/api/test')
 def test():
     return {'hello' : 'hi'}
+
+@app.route('/api/signup', methods=['POST', 'GET'])
+def signup():
+    if request.method == 'POST':
+        data = request.json
+        email = data['email']
+        password = data['password'].encode("utf-8")
+
+        if User.query.filter_by(email=email).first():
+            return {"message": "email exists"}
+
+        hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+        hashed_str = hashed.decode("utf-8")
+
+        user = User(email, hashed_str)
+        db.session.add(user)
+        db.session.commit()
+
+        token = create_access_token(identity=str(user.id))
+
+        res = jsonify({"message" : "User created"})
+
+        # set JWT into a cookie
+        set_access_cookies(res, token)
+
+        return res 
+    else:
+        return 'Route only handles POST'
+
+@app.route('/api/login', methods=['POST', 'GET'])
+def login():
+    if request.method == 'POST':
+        data = request.json
+        email = data['email']
+        password = data['password']
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
+            return {'message': "Invalid input"}
+        
+        token = create_access_token(identity=str(user.id))
+
+        res = jsonify({'message': "Login successful"})
+        #print(res)
+        # set JWT into a cookie
+        set_access_cookies(res, token)
+        
+        return res
+    else:
+        return 'Route only handles POST'
+
+#access to specific user info
+@app.route('/api/me', methods=['GET'])
+@jwt_required()
+def me():
+    # auto extracts the JWT from the HttpOnly cookie
+    user_id = get_jwt_identity()
+    
+    user = User.query.get(user_id)
+
+    return {"email": user.email}
 
 @app.route('/api/get_definitions', methods=['POST', 'GET'])
 def get_definitions():

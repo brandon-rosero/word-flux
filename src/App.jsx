@@ -6,15 +6,19 @@ import './App.css'
 import Search from './components/Search'
 import { Navbar } from './components/Navbar'
 import { SavedVideos } from './pages/SavedVideos'
-import {Route, Routes} from "react-router-dom"
+import {Navigate, Route, Routes} from "react-router-dom"
+import SignUp from './components/SignUp'
+import Login from './components/Login'
 
 function App() {
 
   return (
     <div className='App'>  
-      <Navbar />
       <Routes>
-        <Route path="/" element={<Search />} />
+        <Route path="/" element={<Navigate replace to="/signup"/>} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/media" element={<Media />} />
         <Route path="/saved" element={<SavedVideos />} />
       </Routes>

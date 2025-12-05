@@ -1,8 +1,14 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        "postgresql://myuser:GreenFiretruck227!@localhost:5432/wordfluxdb"
-    )
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    JWT_TOKEN_LOCATION = ["cookies"]
+    JWT_COOKIE_SECURE = True
+    JWT_COOKIE_SAMESITE = "None"
+    JWT_COOKIE_HTTPONLY = True
+    JWT_COOKIE_CSRF_PROTECT = False
