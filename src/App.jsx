@@ -5,7 +5,7 @@ import Media from './components/Media'
 import './App.css'
 import Search from './components/Search'
 import { Navbar } from './components/Navbar'
-import { SavedVideos } from './pages/SavedVideos'
+import SavedVideos from './components/SavedVideos'
 import {Navigate, Route, Routes} from "react-router-dom"
 import SignUp from './components/SignUp'
 import Login from './components/Login'

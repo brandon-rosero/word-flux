@@ -1,0 +1,36 @@
+.video-library-container{
+    display: flex;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 50px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.video-card{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background-color: #FAF9F6;
+    border-radius: 15px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    padding: 20px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    width: 300px;  
+}
+
+.video-card:hover {
+    background-color: #e5e5e5;
+    border-color: #888;
+}
+
+.video-image{
+    width: 100%;
+    border-radius: 15px;
+
+}
+
+.video-delete{
+    display: flex;
+    justify-content: space-between;
+}

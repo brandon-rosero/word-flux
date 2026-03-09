@@ -24,16 +24,16 @@ form {
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: #5D3FD3;;
+    background-color: #5D3FD3;
     cursor: pointer;
     transition: border-color 0.25s;
     width: 100%;
     
-  }
+}
   
-  .sign-up-button:hover {
-    border-color: #646cff;
-  }
+.sign-up-button:hover {
+  border-color: #646cff;
+}
   
   .sign-up-button:focus,
   .sign-up-button:focus-visible {

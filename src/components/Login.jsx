@@ -27,7 +27,6 @@ const Login = () => {
   }
 
   useEffect(() =>{  
-    console.log(message)
     if(message == "Login successful"){
       fetch("http://127.0.0.1:5000/api/me", {
         method: 'GET',  
@@ -49,7 +48,7 @@ const Login = () => {
         });
     }  
     setMessage("")
-})   
+  })   
 
   const handleSubmit = (e) => {
     e.preventDefault();
