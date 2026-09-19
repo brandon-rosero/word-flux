@@ -6,6 +6,8 @@ import "../css/ytText.css"
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import { Oval } from 'react-loader-spinner'
 import { useLocation } from 'react-router-dom';
+import HighlightText from './HighlightText';
+import VocabModal from './VocabModal';
 
 const Media = () => {
   const location = useLocation()
@@ -15,14 +17,16 @@ const Media = () => {
   const [videoTitle, setVideoTitle] = useState();
   const [videoThumbnail, setVideoThumbnail] = useState();
 
-  const {textInput, setTextInput} = useContext(GlobalContext)
+  const {textInput, definitions, word, currentLexicalWords, setCurrentLexicalWords, setCurrentWord, setDefinitions} = useContext(GlobalContext)
   const [data, setData] = useState([])
-  const [time, setTime] = useState(0.0)
+
   const [language, setLanguage] = useState("")
-  const [definitions, setDefinitions] = useState()
-  const [word, setCurrentWord] = useState("")
-  const [currentLexicalWords, setCurrentLexicalWords] = useState("")
+ 
   const [message, setMessage] = useState();
+  const [currentWordIndex, setCurrentWordIndex] = useState(-1);
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -42,17 +46,23 @@ const Media = () => {
 
   }, [])
   
-  useEffect(() =>{ 
-    const timerId = setInterval(() => {
-      if(player){ 
-        setTime(player.getCurrentTime())
-      }
-    }, 1); 
-
-    return () => {
-      clearInterval(timerId);
-    };
-  }) 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!player) return;
+  
+      const time = player.getCurrentTime();
+  
+      const index = data.findIndex(
+        (word) => time >= word.start && time <= word.end
+      );
+  
+      setCurrentWordIndex((prev) =>
+        index !== -1 && index !== prev ? index : prev
+      );
+    }, 100);
+  
+    return () => clearInterval(interval);
+  }, [player, data]);
 
   useEffect(() =>{  
     if(message == "Video added to library"){
@@ -86,23 +96,28 @@ const Media = () => {
  
   return (
     <> 
-        <Navbar />
+      <Navbar />
+      
         <div className='yt-container'>
-            <div className='yt-iframe-def-container'>
-              <div className='yt-iframe' id="player"></div>
-              <div className='btn-options'>
-                <button className='save-vid-btn' onClick={handleVideoSave}>Save Video</button>
-              </div>
-              {word?.length !== 0 ? <div className='yt-definition-container'>
-                <div>{word}{definitions?.map((d, dIndex) => (
-                  <div key={dIndex} className="definition-sentence">
-                    {d.split(/\s+/).map((word, index) => <span key={index} className={currentLexicalWords.includes(word) ? 'def-span' : ''} onClick={() => handleLemmaClick(word)}>{word}</span>)}
-                  </div>
-                  ))}</div>
-                <button className='save-def-btn'>Save Definition</button>
-              </div> : <div></div>}
-            </div>
-            <HighlightText transcript={data} currentTime={time}/>
+          <div className='yt-iframe-text-container'>
+            <div className='yt-iframe' id="player"></div>
+            {data?.length !== 0 ? <div className='btn-options'>
+              <button className='save-vid-btn' onClick={handleVideoSave}>Save Video</button>
+            </div> : <div></div>}
+            {data?.length !== 0 ? <HighlightText transcript={data} currentWordIndex={currentWordIndex} language={language}/> : <Oval
+              height={80}
+              width={80}
+              color="#5D3FD3"
+              visible={true}
+              ariaLabel="oval-loading"
+              secondaryColor="#AE9FE9"
+              strokeWidth={2}
+              strokeWidthSecondary={2}
+              wrapperStyle={{ margin: '20px' }}
+              wrapperClass="custom-loader"
+                />}
+          </div>
+            
             <ToastContainer 
                   position="bottom-right"
                   autoClose={5000}
@@ -116,27 +131,21 @@ const Media = () => {
                   theme="dark"
                   transition={Bounce}
               /> 
-        </div>
+          {word?.length !== 0 ? <div className='yt-definition-container'>
+                <div><h1>{word}</h1>{definitions?.map((d, dIndex) => (
+                  <div key={dIndex} className="definition-sentence">
+                    {d.split(/\s+/).map((word, index) => <span key={index} className={currentLexicalWords.includes(word) ? 'def-span' : ''} onClick={() => handleLemmaClick(word)}>{word}</span>)}
+                  </div>
+                  ))}</div>
+                <button className='save-def-btn' onClick={() => setIsModalOpen(true)}>Create Flashcard</button>
+              </div> : <div></div>}
+
+          <VocabModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}></VocabModal>
+        </div> 
+        
+      
     </>
   )
-  
-  function handleVideoSave(){
-    fetch("http://127.0.0.1:5000/api/save_video", {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({title: videoTitle, video_url: textInput, thumbnail_url: videoThumbnail, transcription: data, language: language})
-    }).then(res => res.json()).then(data => setMessage(data['message']))
-  }
-
-  function handleLemmaClick(word){
-    if(currentLexicalWords.includes(word)){
-      getWordDefinition(word.toLowerCase(), language)
-    }
-  }
 
   function getWordDefinition(word, language){
     fetch("http://127.0.0.1:5000/api/get_definitions", {
@@ -149,38 +158,23 @@ const Media = () => {
       body: JSON.stringify({word: word, language: language})
     }).then((res => res.json())).then(data => {setCurrentWord(data[0]); setDefinitions(data[1]); setCurrentLexicalWords(data[2])})
   }
-
-  function HighlightText({transcript, currentTime}){
-    return (
-      data?.length !== 0 ? <div className='text'>
-        {transcript?.map((word, index) => (
-          <span key={index}
-            className={
-              currentTime >= word.start && currentTime <= word.end ? 'word' : ''
-            }
-            onClick={() => getWordDefinition(removePunctuation(word.word.toLowerCase()), language)}
-          >
-          {word.word}{' '}
-          </span>
-
-        ))}
-      </div> : <Oval
-              height={80}
-              width={80}
-              color="#5D3FD3"
-              visible={true}
-              ariaLabel="oval-loading"
-              secondaryColor="#AE9FE9"
-              strokeWidth={2}
-              strokeWidthSecondary={2}
-              wrapperStyle={{ margin: '20px' }}
-              wrapperClass="custom-loader"
-                />  
-    )
+  
+  function handleLemmaClick(word){
+    if(currentLexicalWords.includes(word)){
+      getWordDefinition(word.toLowerCase(), language)
+    }
   }
 
-  function removePunctuation(str){
-    return str.replace(/[,.!?]/g, "", '')
+  function handleVideoSave(){
+    fetch("http://127.0.0.1:5000/api/save_video", {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({title: videoTitle, video_url: textInput, thumbnail_url: videoThumbnail, transcription: data, language: language})
+    }).then(res => res.json()).then(data => setMessage(data['message']))
   }
 
   function parseURL(url){

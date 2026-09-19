@@ -7,7 +7,10 @@ export const GlobalContext = createContext(null)
 
 const AppContext = ({children}) =>{
     const [textInput, setTextInput] = useState('')
-    return <GlobalContext.Provider value={{textInput, setTextInput}}>{children}</GlobalContext.Provider>
+    const [definitions, setDefinitions] = useState()
+    const [word, setCurrentWord] = useState("")
+    const [currentLexicalWords, setCurrentLexicalWords] = useState("")
+    return <GlobalContext.Provider value={{textInput, setTextInput, definitions, setDefinitions, word, setCurrentWord, currentLexicalWords, setCurrentLexicalWords}}>{children}</GlobalContext.Provider>
 }
 
 export default AppContext

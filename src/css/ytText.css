@@ -1,24 +1,27 @@
 .yt-container{
     display: flex;
-    justify-content: center;
-    padding: 40px;
-    gap: 10px
+    flex-direction: row;
+    height: 100%; 
 }
+
 .yt-iframe{
     max-width: 100%;
-    border-radius: 15px;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
 .yt-definition-container{
     background-color: #FAF9F6;
-    border-radius: 15px;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
     padding: 15px; 
     font-size: 20px;
     display: flex;  
     flex-direction: column;
     gap: 20px;
+    overflow-y: scroll;
+    width: 400px;
+    height: 640px;
+    z-index: 1;
+
 }
 .def-span {
     background-color: #AE9FE9; 
@@ -39,23 +42,26 @@
     gap: 6px;
 }
 
-.yt-iframe-def-container{
+.yt-iframe-text-container{
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-width: 50%;
     align-items: center;
+    width: 100%;
+    padding: 40px;
+    
 }
 
 .text{
-    max-width: 40%;
+    height: 150px;
+    overflow-y: auto;
     font-size: 20px;
     background-color: #FAF9F6;
-    border-radius: 15px;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
     padding: 20px;
-    height: 100%; 
-    overflow: hidden;
+    line-height: 1.6
+     
+    
 }
 
 .text span {
@@ -66,9 +72,9 @@
   
 .text span:hover {
     color: black; 
-    transform: translateY(-4px); 
+    transform: translateY(-2px); 
     cursor: pointer; 
-    font-weight: 580;
+    font-weight: 500;
 }
 
 .save-def-btn{
@@ -85,7 +91,7 @@
 }
 
 .btn-options{
-    overflow: auto;
+    
     gap: 10px;
     width: 100%;
 }
@@ -109,10 +115,5 @@
     justify-content: center;
     height: 80%;
     width: 50%;
-    font-size: 20px;
-    background-color: #FAF9F6;
-    border-radius: 15px;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    padding: 15px; 
-    z-index: 1;
+    
 }

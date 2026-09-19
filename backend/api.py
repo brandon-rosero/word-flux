@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from config import Config
-from models import db, User, Video, User_saved_videos, Video_transcript
+from models import db, User, Video, User_saved_videos, Video_transcript, Flashcard_set, Flashcard
 from dotenv import load_dotenv
 from flask_jwt_extended import create_access_token, set_access_cookies, jwt_required, get_jwt_identity, JWTManager
 
@@ -124,12 +124,51 @@ def get_definitions():
         print(f"No definitions found for {word} in {language}")
         return jsonify([f"No definitions found for '{word}' in {language}"])
 
+    wiktionary_exclude_categories = {
+        # Meta-Tags, Symbols, and Characters
+        "Symbol",
+        "Letter",
+        "Character",
+        "Numeral",
+        "Punctuation mark",
+        "Diacritical mark",
+        "Ligature",
+        "Letter name",
+        
+        # Morphological Pieces & Affixes
+        "Prefix",
+        "Suffix",
+        "Infix",
+        "Interfix",
+        "Circumfix",
+        "Root",
+        "Combining form",
+        "Adfix",
+        
+        # Inflected Forms and Variants
+        "Verb form",
+        "Noun form",
+        "Adjective form",
+        "Abbreviation",
+        "Acronym",
+        "Initialism",
+        
+        # Niche Entries
+        "Proverb",
+        "Idiom",
+    }
+
     for entry in data[language]:
         part_of_speech = entry.get('partOfSpeech', 'Unknown')
-        definitions = entry.get('definitions', [])
-        for i in range(len(definitions)):
-            raw_definition = definitions[i].get('definition', '')
 
+        if part_of_speech in wiktionary_exclude_categories:
+            continue
+
+        definitions = entry.get('definitions', [])
+        limited_defs = definitions[:2]
+        for i in range(len(limited_defs)):
+            raw_definition = limited_defs[i].get('definition', '')
+            
             raw_def_soup = BeautifulSoup(raw_definition, "html.parser")
 
             for i_tag in raw_def_soup.find_all("i"):
@@ -140,7 +179,7 @@ def get_definitions():
                         lexical_words.append(a_tag.text.strip())
 
             clean_definition = BeautifulSoup(raw_definition, "html.parser").get_text()
-            if clean_definition != '' and i < 2:
+            if clean_definition != '':
                 result.append(f"({part_of_speech}) {clean_definition}")
     
     return jsonify([word, result, lexical_words])
@@ -210,6 +249,69 @@ def transcribe():
     
     else:
         return "nada"
+    
+@app.route("/api/save_flashcard", methods=['POST', 'GET'])
+@jwt_required()
+def save_flashcard():
+    user_id = get_jwt_identity()
+    data = request.json
+
+    flashcard_set = Flashcard_set.query.filter_by(user_id=user_id, name=data["flashcard_set_name"]).first()
+
+    # if the flashcard set doesn't exist
+    if not flashcard_set:
+        flashcard_set = Flashcard_set(user_id=user_id, name=data["flashcard_set_name"])
+        db.session.add(flashcard_set)
+        db.session.flush()
+
+    db.session.add(flashcard_set)
+    db.session.flush()
+
+    flashcard = Flashcard(flashcard_set_id=flashcard_set.id, front_text=data["flashcard_front"], back_text=data["flashcard_back"])
+
+    db.session.add(flashcard)
+    db.session.flush()
+
+    db.session.commit()
+
+    return {'message': "Flashcard added to set"}
+
+@app.route('/api/get_flashcards/<set_id>', methods=['GET'])
+@jwt_required()
+def get_flashcards(set_id):
+    user_id = get_jwt_identity()
+
+    result = (
+        db.session.query(
+            Flashcard_set.name,
+            Flashcard.front_text,
+            Flashcard.back_text,  
+        )
+        .join(Flashcard_set, Flashcard.flashcard_set_id == Flashcard_set.id)
+        .filter(Flashcard_set.id == set_id)
+        .filter(Flashcard_set.user_id == user_id)
+        .all()          
+    )
+
+    return jsonify([row._asdict() for row in result])
+
+
+@app.route('/api/get_flashcard_sets', methods=['GET'])
+@jwt_required()
+def get_flashcard_sets():
+    user_id = get_jwt_identity()
+
+    result = (
+        db.session.query(
+            Flashcard_set.id,
+            Flashcard_set.name
+        )
+        .filter(Flashcard_set.user_id == user_id)
+        .all()          
+    )
+
+    return jsonify([row._asdict() for row in result])
+    
 
 @app.route('/api/save_video', methods=['POST', 'GET'])
 @jwt_required()

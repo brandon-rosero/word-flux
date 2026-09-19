@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react'
 import { GlobalContext } from '../context';
 import "../css/videoLibrary.css"
 import { Link } from "react-router-dom";
-import { Trash } from 'lucide-react';
+import { Bold, Trash } from 'lucide-react';
 
 
 const SavedVideoCard = ({videos}) => {
@@ -26,13 +26,15 @@ const SavedVideoCard = ({videos}) => {
                 <Link to="/media" state={{video_url: video.video_url, transcript: video.transcript, videoLanguage: video.language}}>
                     <div className='video-info'>
                         <img src={video.thumbnail_url} className='video-image'/>
-                        <span>{video.title}</span>        
+                        <div className='video-info-text'>
+                            <div className='video-language'>({video.language})</div>     
+                            <div className='video-title'>{video.title}</div>       
+                        </div>     
                     </div>
                 </Link>
-                <div className='video-delete'>
-                    <span style={{ fontWeight: 'bold' }}>{video.language}</span>
+                <div className='video-delete'>   
                     <Trash style={{cursor: 'pointer'}} onClick={() => deleteSavedVideo(video.id)}/>
-                </div> 
+                </div>  
             </div>
         ))}
     </>

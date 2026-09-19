@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../css/signup.css"
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import { AuthContext } from '../AuthContext';
+import WelcomeNav from './WelcomeNav';
 
 
 const SignUp = () => {
@@ -57,35 +58,38 @@ const SignUp = () => {
     })   
   
     return (
-        <div className='sign-up-container'>
-            <form onSubmit={handleSubmit}>
-                <h2 className='logo-label'>WordFlux</h2>
-                <input type="text" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
-                <input type="text" placeholder="Create password" value={password} onChange={e => setPassword(e.target.value)}/>
-                <button className='sign-up-button' type='submit' onClick={setUserInfo}>Sign Up</button> 
-            </form>
-            <div className='existing-account'>
-                <h6>
-                    Already have an account? 
-                    <Link to="/login">
-                        <span className='login-span'> Log in</span>
-                    </Link>     
-                </h6>   
-            </div>
-            <ToastContainer 
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick={false}
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="dark"
-                transition={Bounce}
-            />
-        </div> 
+        <>
+            <WelcomeNav />
+            <div className='sign-up-container'>
+                <form onSubmit={handleSubmit}>
+                    <h2 className='logo-label'>WordFlux</h2>
+                    <input type="text" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+                    <input type="text" placeholder="Create password" value={password} onChange={e => setPassword(e.target.value)}/>
+                    <button className='sign-up-button' type='submit' onClick={setUserInfo}>Sign Up</button> 
+                </form>
+                <div className='existing-account'>
+                    <h6>
+                        Already have an account? 
+                        <Link to="/login">
+                            <span className='login-span'> Log in</span>
+                        </Link>     
+                    </h6>   
+                </div>
+                <ToastContainer 
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick={false}
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="dark"
+                    transition={Bounce}
+                />
+            </div> 
+        </>
   )
 }
 
