@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from config import Config
-from models import db, User, Video, User_saved_videos, Video_transcript, Flashcard_set, Flashcard
+from models import db, User, Video, User_saved_videos, Video_transcript, Flashcard_set, Flashcard, User_word_interaction, User_video_interaction
 from dotenv import load_dotenv
 from flask_jwt_extended import create_access_token, set_access_cookies, jwt_required, get_jwt_identity, JWTManager
 
@@ -97,6 +97,52 @@ def me():
 
     return {"email": user.email}
 
+@app.route('/api/add_word_click_interaction', methods=['POST', 'GET'])
+@jwt_required()
+def add_word_click_interaction():
+    user_id = get_jwt_identity()
+    data = request.json
+
+    video = Video.query.filter_by(video_url=data["video_url"]).first()
+
+    if not video:
+        return {"message": "Video not found"}, 404
+
+    word_interaction = User_word_interaction(user_id=user_id, video_id=video.id, word=data["word"], interaction_type=data["interaction"])
+    
+    db.session.add(word_interaction)
+    db.session.flush()
+    db.session.commit()
+
+    return {'message': "Interaction added"}
+
+@app.route('/api/video_interaction', methods=['POST', 'GET'])
+@jwt_required()
+def video_interaction():
+    user_id = get_jwt_identity()
+    data = request.json
+
+    url = (data.get("url", ""))
+
+    video_url = ""
+    if len(url) > 0:
+        video_url = url
+    else:
+        video_url = data["input"]
+
+    video = Video.query.filter_by(video_url=video_url).first()
+
+    if not video:
+        return {"message": "Video not found"}, 404
+
+    video_interaction = User_video_interaction(user_id=user_id, video_id=video.id, interaction_type=data["interaction"])
+    
+    db.session.add(video_interaction)
+    db.session.flush()
+    db.session.commit()
+
+    return {'message': "Interaction added"}
+
 @app.route('/api/get_definitions', methods=['POST', 'GET'])
 def get_definitions():
     info = request.json
@@ -182,6 +228,7 @@ def get_definitions():
             if clean_definition != '':
                 result.append(f"({part_of_speech}) {clean_definition}")
     
+    print(lexical_words)
     return jsonify([word, result, lexical_words])
 
 @app.route('/api/transcribe', methods=['POST', 'GET'])
@@ -189,9 +236,9 @@ def transcribe():
     if request.method == 'POST':
         # get data from api request
         data = request.json
-        
+        transcript = data.get("transcript", "")
         # length > 0 means data['transcript'] is from a saved video
-        if len(data['transcript']) == 0:
+        if len(transcript) == 0:
             url = data['data']
             audio_file = ""
             device = "cpu" #torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -199,16 +246,22 @@ def transcribe():
             compute_type = "int8"
             
             # 1. Transcribe with original whisper (batched)
-            model = whisperx.load_model("large-v2", device, compute_type=compute_type)
+            model = whisperx.load_model("base", device, compute_type=compute_type, 
+                asr_options={
+                    "condition_on_previous_text": False, 
+                    "repetition_penalty": 1.2,
+                    "no_repeat_ngram_size": 3 
+                })
         
             ydl_opts = {     
                 'format': 'm4a/bestaudio/best',
                 'postprocessors': [{  # Extract audio using ffmpeg
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'm4a',
-                }]
+                }],
+                
             }
-            
+
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
                 # info = info.replace('.webm', '.wav')
@@ -249,6 +302,36 @@ def transcribe():
     
     else:
         return "nada"
+    
+@app.route("/api/store_video", methods=['POST', 'GET'])
+@jwt_required()
+def store_video():
+    user_id = get_jwt_identity()
+    data = request.json
+    video_url = ""
+
+    video_url = data.get("video_url", "")
+
+    if video_url != "":
+        video_url = data["video_url"]
+    else:
+        video_url = data["input"]
+
+    #video_url = data.get("input", data["video_url"])
+
+    video = Video.query.filter_by(video_url=video_url, thumbnail_url=data['thumbnail_url']).first()
+
+    if not video:
+        video = create_video(data['title'], video_url, data['thumbnail_url'])
+        transcript = Video_transcript(video_id=video.id, transcript=data['transcription'], language=data['language'])
+        db.session.add(transcript)
+        db.session.flush()
+        db.session.commit()
+    else:
+        {'message': "Video already exists"}, 404
+
+    return {'message': "Video stored"}
+
     
 @app.route("/api/save_flashcard", methods=['POST', 'GET'])
 @jwt_required()
@@ -316,17 +399,13 @@ def get_flashcard_sets():
 @app.route('/api/save_video', methods=['POST', 'GET'])
 @jwt_required()
 def save_video():
-    print('hello')
     user_id = get_jwt_identity()
     data = request.json
 
     video = Video.query.filter_by(video_url=data['video_url'], thumbnail_url=data['thumbnail_url']).first()
 
     if not video:
-        video = create_video(data['title'], data['video_url'], data['thumbnail_url'])
-        transcript = Video_transcript(video_id=video.id, transcript=data['transcription'], language=data['language'])
-        db.session.add(transcript)
-        db.session.flush()
+        return {'message': "Video doesn't exist"}, 404
     
     link_exists = User_saved_videos.query.filter_by(user_id=user_id, video_id=video.id).first()
 
@@ -377,7 +456,7 @@ def get_saved_videos():
 def delete_saved_videos(video_id):
     user_id = get_jwt_identity()
 
-    video = Video.query.filter_by(id=video_id).first()
+    video = User_saved_videos.query.filter_by(video_id=video_id, user_id=user_id).first()
 
     if video:
         db.session.delete(video)

@@ -12,3 +12,4 @@ class Config:
     JWT_COOKIE_SAMESITE = "None"
     JWT_COOKIE_HTTPONLY = True
     JWT_COOKIE_CSRF_PROTECT = False
+    JWT_ACCESS_TOKEN_EXPIRES = False

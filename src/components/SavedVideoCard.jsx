@@ -17,6 +17,8 @@ const SavedVideoCard = ({videos}) => {
             },
             credentials: 'include',
         }).then(res => res.json()).then(data => {console.log(data)})
+
+        window.location.reload();
     }
   
     return (

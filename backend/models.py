@@ -11,6 +11,8 @@ class User(db.Model):
 
     videos = db.relationship("User_saved_videos", back_populates="user", cascade="all, delete-orphan")
     flashcard_sets = db.relationship("Flashcard_set", back_populates="user")
+    video_interaction = db.relationship("User_video_interaction", back_populates="user", cascade="all, delete-orphan")
+    word_interaction = db.relationship("User_word_interaction", back_populates="user", cascade="all, delete-orphan")
 
     def __init__(self, email, password):
         self.email = email
@@ -28,6 +30,8 @@ class Video(db.Model):
 
     video_info = db.relationship("User_saved_videos", back_populates="video", cascade="all, delete-orphan")
     transcript = db.relationship("Video_transcript", uselist=False, back_populates="video", cascade="all, delete-orphan")
+    video_interaction = db.relationship("User_video_interaction", back_populates="video")
+    word_interaction = db.relationship("User_word_interaction", back_populates="video")
 
     def __init__(self, title, video_url, thumbnail_url):
         self.title = title
@@ -72,3 +76,25 @@ class Flashcard(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     flashcard_set = db.relationship("Flashcard_set", back_populates="flashcards")
+
+class User_video_interaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True) 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"))
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id', ondelete="CASCADE"))
+    interaction_type = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    user = db.relationship("User", back_populates="video_interaction")
+    video = db.relationship("Video", back_populates="video_interaction")
+
+class User_word_interaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True) 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"))
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id', ondelete="CASCADE"))
+    word = db.Column(db.String(255), nullable=False)
+    interaction_type = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    user = db.relationship("User", back_populates="word_interaction")
+    video = db.relationship("Video", back_populates="word_interaction")
+

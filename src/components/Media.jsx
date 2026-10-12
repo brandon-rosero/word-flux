@@ -26,32 +26,90 @@ const Media = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(-1);
 
   const [isModalOpen, setIsModalOpen] = useState(false)
-  
 
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      createIFrame()
-      fetch("http://127.0.0.1:5000/api/transcribe", { 
+  const [cleanUrl, setCleanUrl] = useState()
+
+  const executeSequence = async (vTitle, thumbnailUrl, cleanUrl) => {
+    try{
+      const transcribeRes = await fetch("http://127.0.0.1:5000/api/transcribe", { 
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',  
         },
-        body: JSON.stringify({ data: textInput, transcript: transcript, language: videoLanguage })
-      }).then(res => res.json()).then(data => {setData(data[0]); setLanguage(data[1]); player.playVideo()})
+        body: JSON.stringify({ data: cleanUrl, transcript: transcript, language: videoLanguage })
+      });
+
+      const transcribeData = await transcribeRes.json();
+      const tScript = transcribeData[0]
+      const lang = transcribeData[1]
+      setData(transcribeData[0]);
+      setLanguage(transcribeData[1]);
+
+      const storeRes = await fetch("http://127.0.0.1:5000/api/store_video", {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({title: vTitle, input: cleanUrl, video_url: video_url,thumbnail_url: thumbnailUrl, transcription: tScript, language: lang})
+      });
+
+      const storeData = await storeRes.json();
+      setMessage(storeData['message']);
+
+      const interactionRes = await fetch("http://127.0.0.1:5000/api/video_interaction", { 
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',  
+        },
+        credentials: 'include',
+        body: JSON.stringify({ input: cleanUrl, url: video_url, interaction: "view" })
+      });
+
+      const interactionData = await interactionRes.json();
+      setMessage(interactionData['message']);
+
+    } catch (error){
+      console.error("An error occurred during the sequence:", error);
+    }
+  }
+  
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      createIFrame()
     }, 5000);
     return () => {
       clearTimeout(timerId);
     };
-
   }, [])
   
   useEffect(() => {
+    let interacted = false;
     const interval = setInterval(() => {
       if (!player) return;
   
       const time = player.getCurrentTime();
-  
+      const duration = player.getDuration();
+      const percentage = (time / duration) * 100;
+      
+      if(!interacted){
+        if(percentage >= 50){
+          interacted = true;
+          fetch("http://127.0.0.1:5000/api/video_interaction", { 
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',  
+            },
+            credentials: 'include',
+            body: JSON.stringify({ input: cleanUrl, url: video_url, interaction: "watch" })
+          }).then(res => res.json()).then(data => {setMessage(data[0])})   
+        }
+      }
       const index = data.findIndex(
         (word) => time >= word.start && time <= word.end
       );
@@ -104,7 +162,7 @@ const Media = () => {
             {data?.length !== 0 ? <div className='btn-options'>
               <button className='save-vid-btn' onClick={handleVideoSave}>Save Video</button>
             </div> : <div></div>}
-            {data?.length !== 0 ? <HighlightText transcript={data} currentWordIndex={currentWordIndex} language={language}/> : <Oval
+            {data?.length !== 0 ? <HighlightText transcript={data} currentWordIndex={currentWordIndex} language={language} url={cleanUrl} /> : <Oval
               height={80}
               width={80}
               color="#5D3FD3"
@@ -134,7 +192,7 @@ const Media = () => {
           {word?.length !== 0 ? <div className='yt-definition-container'>
                 <div><h1>{word}</h1>{definitions?.map((d, dIndex) => (
                   <div key={dIndex} className="definition-sentence">
-                    {d.split(/\s+/).map((word, index) => <span key={index} className={currentLexicalWords.includes(word) ? 'def-span' : ''} onClick={() => handleLemmaClick(word)}>{word}</span>)}
+                    {d.split(/\s+/).map((word, index) => <span key={index} className={currentLexicalWords.includes(removePunctuation(word)) ? 'def-span' : ''} onClick={() => handleLemmaClick(removePunctuation(word))}>{word}</span>)}
                   </div>
                   ))}</div>
                 <button className='save-def-btn' onClick={() => setIsModalOpen(true)}>Create Flashcard</button>
@@ -165,6 +223,10 @@ const Media = () => {
     }
   }
 
+  function removePunctuation(str){
+    return str.replace(/[:,.!?;"'-()]/g, "")
+  } 
+
   function handleVideoSave(){
     fetch("http://127.0.0.1:5000/api/save_video", {
       method: 'POST',
@@ -173,7 +235,7 @@ const Media = () => {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({title: videoTitle, video_url: textInput, thumbnail_url: videoThumbnail, transcription: data, language: language})
+      body: JSON.stringify({title: videoTitle, video_url: cleanUrl, thumbnail_url: videoThumbnail, transcription: data, language: language})
     }).then(res => res.json()).then(data => setMessage(data['message']))
   }
 
@@ -185,13 +247,12 @@ const Media = () => {
 
   function createIFrame(){
       let videoID = null
-
-      if (textInput?.length === 0){
-        videoID = parseURL(video_url)
-        
+      if (video_url?.length === 0 || video_url == undefined){  
+        videoID = parseURL(textInput)
       }
       else{
-        videoID = parseURL(textInput)
+        
+        videoID = parseURL(video_url)
       }
       
       setVideoThumbnail(`https://img.youtube.com/vi/${videoID}/0.jpg`)
@@ -206,13 +267,19 @@ const Media = () => {
               'onReady': onPlayerReady,
               'onStateChange': onPlayerStateChange,
           }
-      }))     
+      })) 
   }
 
   function onPlayerReady(event) { 
     var videoData = event.target.getVideoData();
     var videoTitle = videoData.title;
+    const videoID = videoData.video_id;
+    const thumbnailUrl = `https://img.youtube.com/vi/${videoID}/0.jpg`;
+    const cleanUrl = `https://www.youtube.com/watch?v=${videoID}`;
     setVideoTitle(videoTitle);
+    setVideoThumbnail(thumbnailUrl);
+    setCleanUrl(cleanUrl);
+    executeSequence(videoTitle, thumbnailUrl, cleanUrl);
   }
 
   function onPlayerStateChange(event) {
