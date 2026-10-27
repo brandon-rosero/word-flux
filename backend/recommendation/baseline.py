@@ -7,15 +7,15 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from models import db, User, Video, User_saved_videos, Video_transcript, Flashcard_set, Flashcard, User_word_interaction, User_video_interaction
+from models import db, User, Video, User_saved_videos, Video_transcript, User_video_interaction
 from api import app
 
 weights = {
-        "view": 1,
-        "word_click": 2,
-        "watch": 3,
-        "saved_flashcard": 4,
-        "saved_video": 5
+    "view": 1,
+    "word_click": 2,
+    "watch": 3,
+    "saved_flashcard": 4,
+    "saved_video": 5
 }
 
 def recall_at_k(recommended, relevant, k):
@@ -120,6 +120,7 @@ def get_recommendations(user_id):
     user_interaction_weights, interacted_videos = assign_weights(user_interaction_result, weights)
 
     transcripts = construct_transcript_strings(video_transcripts)
+   
 
     result = give_scores(transcripts, user_interaction_weights, index_to_video)
 
