@@ -28,7 +28,7 @@ db.init_app(app)
 CORS(
     app,
     supports_credentials=True,
-    resources={r"/api/.*": {"origins": ["http://localhost:4173", "http://localhost:5173"]}},
+    resources={r"/api/.*": {"origins": ["https://word-flux.vercel.app", "http://localhost:4173", "http://localhost:5173"]}},
     methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "Accept"]
 )
