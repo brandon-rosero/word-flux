@@ -25,11 +25,13 @@ jwt = JWTManager(app)
 
 db.init_app(app)
 
-CORS(app, 
-     supports_credentials=True,
-     resources={r"/*": {"origins": "http://localhost:5173"}},
-     methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-     allow_headers=["Content-Type",'Accept'])
+CORS(
+    app,
+    supports_credentials=True,
+    resources={r"/api/.*": {"origins": "http://localhost:5173"}},
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Content-Type", "Accept"]
+)
 
 @app.route('/api/test')
 def test():
