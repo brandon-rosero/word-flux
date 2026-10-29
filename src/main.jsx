@@ -10,7 +10,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <AppContext>
-        <BrowserRouter basename="/word-flux">
+        <BrowserRouter basename="/">
           <App />
         </BrowserRouter>
       </AppContext>
