@@ -4,6 +4,7 @@ import { Navbar } from './Navbar'
 import SavedVideoCard from './SavedVideoCard'
 import LibrarySidebar from './LibrarySidebar'
 import FlashcardLibrary from './FlashcardLibrary'
+import API_URL from "../api.js";
 
 const SavedVideos = () => {
     const [userVideos, setUserVideos] = useState()
@@ -11,7 +12,7 @@ const SavedVideos = () => {
     const [activeTab, setActiveTab] = useState('videos');
 
     useEffect(() => {    
-        fetch("http://127.0.0.1:5000/api/get_saved_videos", { 
+        fetch(`${API_URL}/api/get_saved_videos`, { 
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -20,7 +21,7 @@ const SavedVideos = () => {
             credentials: 'include',
         }).then(res => res.json()).then(data => {setUserVideos(data); console.log(data)})
 
-        fetch("http://127.0.0.1:5000/api/get_flashcard_sets", { 
+        fetch(`${API_URL}/api/get_flashcard_sets`, { 
             method: 'GET',
             headers: {
                 'Accept': 'application/json',

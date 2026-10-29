@@ -1,6 +1,8 @@
 import React, { useStatem, useEffect, useState, useContext, useRef } from 'react'
 import "../css/vocabModal.css"
 import { GlobalContext } from '../context';
+import API_URL from "../api.js";
+
 
 const VocabModal = ({isOpen, onClose}) => {
     if (!isOpen) return null
@@ -15,7 +17,7 @@ const VocabModal = ({isOpen, onClose}) => {
     const [checkedNames, setCheckedNames] = useState([]);
 
     useEffect(() => {    
-        fetch("http://127.0.0.1:5000/api/get_flashcard_sets", { 
+        fetch(`${API_URL}/api/get_flashcard_sets`, { 
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -70,7 +72,7 @@ const VocabModal = ({isOpen, onClose}) => {
         console.log(back)
         console.log(flashcardSetName)
         
-        fetch("http://127.0.0.1:5000/api/save_flashcard", {
+        fetch(`${API_URL}/api/save_flashcard`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',

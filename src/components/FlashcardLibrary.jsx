@@ -3,13 +3,14 @@ import { Bold, Trash, NotebookText } from 'lucide-react';
 import { Link } from "react-router-dom";
 import "../css/videoLibrary.css"
 import ViewFlashcardsModal from './ViewFlashcardsModal';
+import API_URL from "../api.js";
 
 const FlashcardLibrary = ({sets}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const[userFlashcards, setUserFlashcards] = useState()
 
     function get_flashcards(set_id){
-        fetch(`http://127.0.0.1:5000/api/get_flashcards/${set_id}`, { 
+        fetch(`${API_URL}/api/get_flashcards/${set_id}`, { 
             method: 'GET',
             headers: {
                 'Accept': 'application/json',

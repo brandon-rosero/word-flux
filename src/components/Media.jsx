@@ -8,6 +8,7 @@ import { Oval } from 'react-loader-spinner'
 import { useLocation } from 'react-router-dom';
 import HighlightText from './HighlightText';
 import VocabModal from './VocabModal';
+import API_URL from "../api.js";
 
 const Media = () => {
   const location = useLocation()
@@ -31,7 +32,7 @@ const Media = () => {
 
   const executeSequence = async (vTitle, thumbnailUrl, cleanUrl) => {
     try{
-      const transcribeRes = await fetch("http://127.0.0.1:5000/api/transcribe", { 
+      const transcribeRes = await fetch(`${API_URL}/api/transcribe`, { 
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -46,7 +47,7 @@ const Media = () => {
       setData(transcribeData[0]);
       setLanguage(transcribeData[1]);
 
-      const storeRes = await fetch("http://127.0.0.1:5000/api/store_video", {
+      const storeRes = await fetch(`${API_URL}/api/store_video`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -59,7 +60,7 @@ const Media = () => {
       const storeData = await storeRes.json();
       setMessage(storeData['message']);
 
-      const interactionRes = await fetch("http://127.0.0.1:5000/api/video_interaction", { 
+      const interactionRes = await fetch(`${API_URL}/api/video_interaction`, { 
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -99,7 +100,7 @@ const Media = () => {
       if(!interacted){
         if(percentage >= 50){
           interacted = true;
-          fetch("http://127.0.0.1:5000/api/video_interaction", { 
+          fetch(`${API_URL}/api/video_interaction`, { 
             method: 'POST',
             headers: {
               'Accept': 'application/json',
@@ -206,7 +207,7 @@ const Media = () => {
   )
 
   function getWordDefinition(word, language){
-    fetch("http://127.0.0.1:5000/api/get_definitions", {
+    fetch(`${API_URL}/api/get_definitions`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -228,7 +229,7 @@ const Media = () => {
   } 
 
   function handleVideoSave(){
-    fetch("http://127.0.0.1:5000/api/save_video", {
+    fetch(`${API_URL}/api/save_video`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',

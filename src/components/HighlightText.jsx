@@ -1,5 +1,6 @@
 import React, { useStatem, useEffect, useState, useContext } from 'react'
 import { GlobalContext } from '../context';
+import API_URL from "../api.js";
 
 const HighlightText = ({transcript, currentWordIndex, language, url}) => {
     const { textInput, setCurrentLexicalWords, setCurrentWord, setDefinitions } = useContext(GlobalContext)
@@ -23,7 +24,7 @@ const HighlightText = ({transcript, currentWordIndex, language, url}) => {
       )
 
       function getWordDefinition(word, language){
-        fetch("http://127.0.0.1:5000/api/get_definitions", {
+        fetch(`${API_URL}/api/get_definitions`, {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -44,7 +45,7 @@ const HighlightText = ({transcript, currentWordIndex, language, url}) => {
         //   video_url = textInput;
         // }
         //  console.log(video_url)
-        fetch("http://127.0.0.1:5000/api/add_word_click_interaction", {
+        fetch(`${API_URL}/api/add_word_click_interaction`, {
           method: 'POST',
           headers: {
             'Accept': 'application/json',

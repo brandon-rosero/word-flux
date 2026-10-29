@@ -4,7 +4,7 @@ import "../css/signup.css"
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import { AuthContext } from '../AuthContext';
 import WelcomeNav from './WelcomeNav';
-
+import API_URL from "../api.js";
 
 const SignUp = () => {
     
@@ -21,7 +21,7 @@ const SignUp = () => {
     }
 
     function setUserInfo(){
-        fetch("http://127.0.0.1:5000/api/signup", {
+        fetch(`${API_URL}/api/signup`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -35,7 +35,7 @@ const SignUp = () => {
     useEffect(() =>{  
         console.log(message)
         if(message == "User created"){
-            fetch("http://127.0.0.1:5000/api/me", {
+            fetch(`${API_URL}/api/me`, {
                 method: 'GET',  
                 credentials: 'include'
             }).then(res => res.json()).then(data => console.log(data))

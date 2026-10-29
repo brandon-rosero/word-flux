@@ -4,6 +4,7 @@ import { Bounce, ToastContainer, toast } from 'react-toastify';
 import "../css/signup.css"
 import { AuthContext } from '../AuthContext';
 import WelcomeNav from './WelcomeNav'
+import API_URL from "../api.js";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   function getUserInfo(){
-    fetch("http://127.0.0.1:5000/api/login", {
+    fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -29,7 +30,7 @@ const Login = () => {
 
   useEffect(() =>{  
     if(message == "Login successful"){
-      fetch("http://127.0.0.1:5000/api/me", {
+      fetch(`${API_URL}/api/me`, {
         method: 'GET',  
         credentials: 'include'
       }).then(res => res.json()).then(data => console.log(data))

@@ -3,13 +3,14 @@ import { GlobalContext } from '../context';
 import "../css/videoLibrary.css"
 import { Link } from "react-router-dom";
 import { Bold, Trash } from 'lucide-react';
+import API_URL from "../api.js";
 
 
 const SavedVideoCard = ({videos}) => {
     const {setTextInput} = useContext(GlobalContext)
 
     function deleteSavedVideo(video_id){
-        fetch(`http://127.0.0.1:5000/api/delete_saved_videos/${video_id}`, { 
+        fetch(`${API_URL}/api/delete_saved_videos/${video_id}`, { 
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json',
